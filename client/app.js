@@ -2,6 +2,8 @@ let scene, renderer, camera, container;
 let moveMeshes = [];
 let floorMesh;
 
+let addCube = document.getElementById('add-cube');
+
 function init(){
     container = document.getElementById('container');
     scene = new THREE.Scene();
@@ -68,11 +70,12 @@ function update(){
     moveMeshes.forEach((mesh, originalIndex) =>{
         mesh.rotation.x += 0.01;
         mesh.rotation.y += 0.01;
-
+        //working under the assumption that originalIndex < index
+        //as this is firing synchronously it is a safe assumption
         moveMeshes.forEach((checkMesh,index) =>{
            if(!(checkMesh === mesh) && checkMesh.position.distanceTo(mesh.position) <2){
+                console.log('initial meshes: ' + moveMeshes);
                 let newPositionVector = (checkMesh.position.add(mesh.position))
-                
                 const newMesh = new THREE.Mesh(
                     new THREE.BoxBufferGeometry(3,3,3),
                     new THREE.MeshPhongMaterial({color:0xff4432})
@@ -80,9 +83,11 @@ function update(){
                 newMesh.position.set.y = 3;
                 newPositionVector = newPositionVector.divideScalar(2);
                 newMesh.position.set(newPositionVector.x, newPositionVector.y, newPositionVector.z);
-
-                moveMeshes.pop(mesh);
-                moveMeshes.splice(checkMesh);
+                
+                console.log(`checkpoint 1: ${moveMeshes}`);
+                moveMeshes.splice(index,1);
+                moveMeshes.splice(originalIndex,1);
+                console.log(`checkpoint 2: ${moveMeshes}`);
                 
                 mesh.geometry.dispose();
                 mesh.material.dispose();
@@ -94,6 +99,8 @@ function update(){
 
                 scene.add(newMesh);
                 moveMeshes.push(newMesh);
+                console.log('final meshes: ' + moveMeshes);
+
            }
         })
     })
@@ -107,5 +114,17 @@ function onResize(){
 
     renderer.setSize(container.clientWidth, container.clientHeight);
 }
+
+addCube.addEventListener('click', e =>{
+    let mesh = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(2,2,2),
+        new THREE.MeshPhongMaterial({color: 0xff4432})
+    );
+    mesh.position.y = 2 + Math.random()*2;
+    mesh.position.x = 10 - Math.random()*20;
+    moveMeshes.push(mesh);
+    scene.add(mesh);
+})
+
 window.addEventListener('resize', onResize);
 init();

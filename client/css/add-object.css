@@ -1,0 +1,47 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+#container #add-object-menu {
+  text-align: center;
+  background-color: rgba(135, 206, 235, 0.5);
+  position: absolute;
+  left: 100%;
+  -webkit-transform: translateX(-100%);
+          transform: translateX(-100%);
+  width: 200px;
+  height: 100%;
+  border: 3px solid #303030;
+}
+
+#container #add-object-menu .text-header {
+  margin-top: 30px;
+}
+
+#container #add-object-menu .add-objects {
+  position: absolute;
+  bottom: 20%;
+}
+
+#container #add-object-menu .add-objects .add-button {
+  right: 50%;
+  -webkit-transform: translateX(50%);
+          transform: translateX(50%);
+}
+
+#container #add-object-menu .add-objects #add-cube {
+  background-color: transparent;
+  padding: 10px;
+  font-weight: bold;
+  color: #303030;
+  border-radius: 10px;
+  border: 3px solid #303030;
+}
+
+#container #add-object-menu .add-objects #add-cube:hover {
+  cursor: pointer;
+}
+/*# sourceMappingURL=add-object.css.map */
