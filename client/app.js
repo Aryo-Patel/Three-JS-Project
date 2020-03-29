@@ -5,6 +5,9 @@ let controls;
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let addCube = document.getElementById('add-cube');
+let keyboard = {};
+const MOVEMENT_SPEED = 0.5;
+const RENDER_DISTANCE = 7;
 
 function init(){
     container = document.getElementById('container');
@@ -41,6 +44,8 @@ function createMoveMeshes(){
         size: 2,
         childMeshObjs: []
     };
+    meshLeft.castShadow = true;
+    meshLeft.receiveShadow = true;
     moveMeshes.push(meshLeftObj);
     scene.add(meshLeftObj.mesh);
     
@@ -57,9 +62,10 @@ function createMoveMeshes(){
 }
 function createFloor(){
     const floor = new THREE.Mesh(
-        new THREE.PlaneBufferGeometry(10,10,100,100),
+        new THREE.PlaneBufferGeometry(20000,20000),
         new THREE.MeshPhongMaterial({color: 0xffffff, wireframe: false})
     );
+    floor.receiveShadow = true;
     floor.material.side = THREE.DoubleSide;
     floor.rotation.x = Math.PI/2;
     scene.add(floor);
@@ -67,7 +73,8 @@ function createFloor(){
 function createLights(){
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
     directionalLight.position.set(10,10,10);
-    
+    directionalLight.castShadow = true;
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight, directionalLight);
 }
@@ -80,6 +87,7 @@ function createRenderer(){
 }
 //potentially turn moveMeshes into an object so that its dimensions can be stored. This will mean reformatting the update method.
 function update(){
+    checkKeyboardPresses();
     moveMeshes.forEach((meshObj, originalIndex) =>{
         let mesh = meshObj.mesh;
         mesh.rotation.x += 0.01;
@@ -96,9 +104,9 @@ function update(){
                     new THREE.BoxBufferGeometry(newMeshSize,newMeshSize,newMeshSize),
                     new THREE.MeshPhongMaterial({color:0xff4432})
                 )
-                newMesh.position.set.y = 3;
+                
                 newPositionVector = newPositionVector.divideScalar(2);
-                newMesh.position.set(newPositionVector.x, newPositionVector.y, newPositionVector.z);
+                newMesh.position.set(newPositionVector.x, newMeshSize, newPositionVector.z);
                 const newMeshObj = {
                     mesh: newMesh,
                     size: newMeshSize,
@@ -117,7 +125,6 @@ function update(){
 
                 scene.add(newMeshObj.mesh);
                 moveMeshes.push(newMeshObj);
-                console.log(moveMeshes);
                 controls = new THREE.DragControls(moveMeshes.map(meshObj => meshObj.mesh), camera, renderer.domElement);
            }
         })
@@ -138,8 +145,9 @@ addCube.addEventListener('click', e =>{
         new THREE.BoxBufferGeometry(2,2,2),
         new THREE.MeshPhongMaterial({color: 0xff4432})
     );
-    mesh.position.y = 2 + Math.random()*2;
-    mesh.position.x = 10 - Math.random()*20;
+    mesh.position.y = 2;
+    mesh.position.x = camera.position.x - Math.sin(camera.rotation.y) * RENDER_DISTANCE;
+    mesh.position.z = camera.position.z - Math.cos(camera.rotation.y)*RENDER_DISTANCE;
     const meshObj = {
         mesh: mesh,
         size: 2,
@@ -164,6 +172,8 @@ renderer.domElement.addEventListener('mousemove', e =>{
 renderer.domElement.addEventListener('contextmenu', e =>{
     e.preventDefault();
 
+    
+
     raycaster.setFromCamera(mouse, camera);
     let intersections = raycaster.intersectObjects(moveMeshes.map(meshObj => meshObj.mesh));
     if(intersections.length > 0){
@@ -171,7 +181,6 @@ renderer.domElement.addEventListener('contextmenu', e =>{
 
         moveMeshes.forEach((meshObj, index) =>{
             if(meshObj.mesh === mesh){
-                console.log('we found it');
                 if(meshObj.childMeshObjs.length > 0){
                     const meshLeft = meshObj.childMeshObjs[0].mesh;
                     meshLeft.geometry = new THREE.BoxBufferGeometry(meshObj.childMeshObjs[0].size,meshObj.childMeshObjs[0].size,meshObj.childMeshObjs[0].size);
@@ -193,7 +202,6 @@ renderer.domElement.addEventListener('contextmenu', e =>{
 
                     scene.remove(meshObj.mesh);
                     scene.add(meshLeft, meshRight);
-                    console.log(moveMeshes);
                 }
                 else{
                     alert("Cube cannot be futher reduced");
@@ -202,3 +210,28 @@ renderer.domElement.addEventListener('contextmenu', e =>{
         });
     }
 });
+
+document.addEventListener('keydown', e =>{
+    keyboard[e.keyCode] = true;
+});
+document.addEventListener('keyup', e =>{
+    keyboard[e.keyCode] = false;
+});
+
+function checkKeyboardPresses(){
+    if(keyboard[68]){//d key
+        camera.rotation.y -= Math.PI * 0.02;
+    }
+    if(keyboard[65]){ //a key
+        camera.rotation.y += Math.PI * 0.02;
+    }
+    if(keyboard[87]){ // w key
+        camera.position.x -= Math.sin(camera.rotation.y)*MOVEMENT_SPEED;
+        camera.position.z -= Math.cos(camera.rotation.y) * MOVEMENT_SPEED;
+    }
+    if(keyboard[83]){//s key
+        camera.position.x += Math.sin(camera.rotation.y)*MOVEMENT_SPEED;
+        camera.position.z += Math.cos(camera.rotation.y) * MOVEMENT_SPEED;
+    }
+
+}
