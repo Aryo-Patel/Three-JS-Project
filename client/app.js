@@ -2,7 +2,8 @@ let scene, renderer, camera, container;
 let moveMeshes = [];
 let floorMesh;
 let controls;
-
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
 let addCube = document.getElementById('add-cube');
 
 function init(){
@@ -147,7 +148,57 @@ addCube.addEventListener('click', e =>{
     moveMeshes.push(meshObj);
     scene.add(meshObj.mesh);
     controls = new THREE.DragControls(moveMeshes.map(meshObj => meshObj.mesh), camera, renderer.domElement);
-})
+});
+
+
+
 
 window.addEventListener('resize', onResize);
 init();
+renderer.domElement.addEventListener('mousemove', e =>{
+    let rect = renderer.domElement.getBoundingClientRect();
+
+    mouse.x = ( ( e.clientX - rect.left ) / rect.width ) * 2 - 1;
+    mouse.y = - ( ( e.clientY - rect.top ) / rect.height ) * 2 + 1;
+});
+renderer.domElement.addEventListener('contextmenu', e =>{
+    e.preventDefault();
+
+    raycaster.setFromCamera(mouse, camera);
+    let intersections = raycaster.intersectObjects(moveMeshes.map(meshObj => meshObj.mesh));
+    if(intersections.length > 0){
+        let mesh = intersections[0].object;
+
+        moveMeshes.forEach((meshObj, index) =>{
+            if(meshObj.mesh === mesh){
+                console.log('we found it');
+                if(meshObj.childMeshObjs.length > 0){
+                    const meshLeft = meshObj.childMeshObjs[0].mesh;
+                    meshLeft.geometry = new THREE.BoxBufferGeometry(meshObj.childMeshObjs[0].size,meshObj.childMeshObjs[0].size,meshObj.childMeshObjs[0].size);
+                    meshLeft.material = new THREE.MeshPhongMaterial({color: 0xff4432});
+                    meshLeft.position.set(meshObj.mesh.position.x - meshObj.size, meshObj.mesh.position.y, meshObj.mesh.position.z);
+                    const meshLeftObj = meshObj.childMeshObjs[0];
+
+                    const meshRight = meshObj.childMeshObjs[1].mesh;
+                    meshRight.geometry = new THREE.BoxBufferGeometry(meshObj.childMeshObjs[1].size,meshObj.childMeshObjs[1].size,meshObj.childMeshObjs[1].size);
+                    meshRight.material = new THREE.MeshPhongMaterial({color: 0xff4432});
+                    meshRight.position.set(meshObj.mesh.position.x + meshObj.size, meshObj.mesh.position.y, meshObj.mesh.position.z);
+                    const meshRightObj = meshObj.childMeshObjs[1];
+
+                    meshObj.mesh.geometry.dispose();
+                    meshObj.mesh.material.dispose();
+
+                    moveMeshes.splice(index, 1);
+                    moveMeshes.push(meshLeftObj, meshRightObj);
+
+                    scene.remove(meshObj.mesh);
+                    scene.add(meshLeft, meshRight);
+                    console.log(moveMeshes);
+                }
+                else{
+                    alert("Cube cannot be futher reduced");
+                }
+            }
+        });
+    }
+});

@@ -59,7 +59,7 @@ THREE.DragControls = function ( _objects, _camera, _domElement ) {
 	function onDocumentMouseMove( event ) {
 
 		event.preventDefault();
-
+		
 		var rect = _domElement.getBoundingClientRect();
 
 		_mouse.x = ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
