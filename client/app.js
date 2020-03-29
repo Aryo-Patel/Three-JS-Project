@@ -1,6 +1,7 @@
 let scene, renderer, camera, container;
 let moveMeshes = [];
 let floorMesh;
+let controls;
 
 let addCube = document.getElementById('add-cube');
 
@@ -16,7 +17,7 @@ function init(){
     createRenderer();
     
     
-    let controls = new THREE.DragControls(moveMeshes, camera, renderer.domElement);
+    controls = new THREE.DragControls(moveMeshes.map(meshObj => meshObj.mesh), camera, renderer.domElement);
     renderer.setAnimationLoop(()=>{
         render();
         update();
@@ -34,13 +35,23 @@ function createMoveMeshes(){
         new THREE.MeshPhongMaterial({color: 0xff4432})
     );
     meshLeft.position.set(-3,2,0);
-    moveMeshes.push(meshLeft);
-    scene.add(meshLeft);
+    const meshLeftObj = {
+        mesh: meshLeft,
+        size: 2,
+        childMeshObjs: []
+    };
+    moveMeshes.push(meshLeftObj);
+    scene.add(meshLeftObj.mesh);
     
     const meshRight = meshLeft.clone();
     meshRight.position.set(3,2,0);
-    moveMeshes.push(meshRight);
-    scene.add(meshRight);
+    const meshRightObj = {
+        mesh: meshRight,
+        size: 2,
+        childMeshObjs: []
+    };
+    moveMeshes.push(meshRightObj);
+    scene.add(meshRightObj.mesh);
     
 }
 function createFloor(){
@@ -66,28 +77,34 @@ function createRenderer(){
 
     container.appendChild(renderer.domElement);
 }
+//potentially turn moveMeshes into an object so that its dimensions can be stored. This will mean reformatting the update method.
 function update(){
-    moveMeshes.forEach((mesh, originalIndex) =>{
+    moveMeshes.forEach((meshObj, originalIndex) =>{
+        let mesh = meshObj.mesh;
         mesh.rotation.x += 0.01;
         mesh.rotation.y += 0.01;
         //working under the assumption that originalIndex < index
         //as this is firing synchronously it is a safe assumption
-        moveMeshes.forEach((checkMesh,index) =>{
-           if(!(checkMesh === mesh) && checkMesh.position.distanceTo(mesh.position) <2){
-                console.log('initial meshes: ' + moveMeshes);
-                let newPositionVector = (checkMesh.position.add(mesh.position))
+        moveMeshes.forEach((checkMeshObj,index) =>{
+            let checkMesh = checkMeshObj.mesh;
+            // let box = new THREE.Box3().setFromObject(checkMesh);
+            if(!(checkMesh === mesh) && checkMesh.position.distanceTo(mesh.position) <2){
+                let newPositionVector = (checkMesh.position.add(mesh.position));
+                const newMeshSize = (meshObj.size + checkMeshObj.size);
                 const newMesh = new THREE.Mesh(
-                    new THREE.BoxBufferGeometry(3,3,3),
+                    new THREE.BoxBufferGeometry(newMeshSize,newMeshSize,newMeshSize),
                     new THREE.MeshPhongMaterial({color:0xff4432})
                 )
                 newMesh.position.set.y = 3;
                 newPositionVector = newPositionVector.divideScalar(2);
                 newMesh.position.set(newPositionVector.x, newPositionVector.y, newPositionVector.z);
-                
-                console.log(`checkpoint 1: ${moveMeshes}`);
+                const newMeshObj = {
+                    mesh: newMesh,
+                    size: newMeshSize,
+                    childMeshObjs: [checkMeshObj, meshObj]
+                }
                 moveMeshes.splice(index,1);
                 moveMeshes.splice(originalIndex,1);
-                console.log(`checkpoint 2: ${moveMeshes}`);
                 
                 mesh.geometry.dispose();
                 mesh.material.dispose();
@@ -97,10 +114,10 @@ function update(){
                 checkMesh.material.dispose();
                 scene.remove(checkMesh);
 
-                scene.add(newMesh);
-                moveMeshes.push(newMesh);
-                console.log('final meshes: ' + moveMeshes);
-
+                scene.add(newMeshObj.mesh);
+                moveMeshes.push(newMeshObj);
+                console.log(moveMeshes);
+                controls = new THREE.DragControls(moveMeshes.map(meshObj => meshObj.mesh), camera, renderer.domElement);
            }
         })
     })
@@ -122,8 +139,14 @@ addCube.addEventListener('click', e =>{
     );
     mesh.position.y = 2 + Math.random()*2;
     mesh.position.x = 10 - Math.random()*20;
-    moveMeshes.push(mesh);
-    scene.add(mesh);
+    const meshObj = {
+        mesh: mesh,
+        size: 2,
+        childMeshObjs: []
+    }
+    moveMeshes.push(meshObj);
+    scene.add(meshObj.mesh);
+    controls = new THREE.DragControls(moveMeshes.map(meshObj => meshObj.mesh), camera, renderer.domElement);
 })
 
 window.addEventListener('resize', onResize);
