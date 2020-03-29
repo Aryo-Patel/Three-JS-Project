@@ -5,6 +5,15 @@
           box-sizing: border-box;
 }
 
+#container #instructions {
+  margin-top: 10px;
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+  text-align: center;
+}
+
 #container #add-object-menu {
   text-align: center;
   background-color: rgba(135, 206, 235, 0.5);

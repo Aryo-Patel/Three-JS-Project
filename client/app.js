@@ -172,8 +172,6 @@ renderer.domElement.addEventListener('mousemove', e =>{
 renderer.domElement.addEventListener('contextmenu', e =>{
     e.preventDefault();
 
-    
-
     raycaster.setFromCamera(mouse, camera);
     let intersections = raycaster.intersectObjects(moveMeshes.map(meshObj => meshObj.mesh));
     if(intersections.length > 0){
@@ -185,13 +183,13 @@ renderer.domElement.addEventListener('contextmenu', e =>{
                     const meshLeft = meshObj.childMeshObjs[0].mesh;
                     meshLeft.geometry = new THREE.BoxBufferGeometry(meshObj.childMeshObjs[0].size,meshObj.childMeshObjs[0].size,meshObj.childMeshObjs[0].size);
                     meshLeft.material = new THREE.MeshPhongMaterial({color: 0xff4432});
-                    meshLeft.position.set(meshObj.mesh.position.x - meshObj.size, meshObj.mesh.position.y, meshObj.mesh.position.z);
+                    meshLeft.position.set(meshObj.mesh.position.x - meshObj.size, meshObj.childMeshObjs[0].size, meshObj.mesh.position.z);
                     const meshLeftObj = meshObj.childMeshObjs[0];
 
                     const meshRight = meshObj.childMeshObjs[1].mesh;
                     meshRight.geometry = new THREE.BoxBufferGeometry(meshObj.childMeshObjs[1].size,meshObj.childMeshObjs[1].size,meshObj.childMeshObjs[1].size);
                     meshRight.material = new THREE.MeshPhongMaterial({color: 0xff4432});
-                    meshRight.position.set(meshObj.mesh.position.x + meshObj.size, meshObj.mesh.position.y, meshObj.mesh.position.z);
+                    meshRight.position.set(meshObj.mesh.position.x + meshObj.size, meshObj.childMeshObjs[1].size, meshObj.mesh.position.z);
                     const meshRightObj = meshObj.childMeshObjs[1];
 
                     meshObj.mesh.geometry.dispose();

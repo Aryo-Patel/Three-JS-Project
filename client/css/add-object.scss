@@ -6,6 +6,13 @@ $textColor: #303030;
     box-sizing: border-box;
 }
 #container{
+    #instructions{
+        margin-top: 10px;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+    }
     #add-object-menu{
         text-align: center;
         background-color: $backgroundColor;
